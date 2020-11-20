@@ -30,8 +30,10 @@ type MyApiWithSwagger =
   :<|> "api" :> Redirect 302 Text -- Redirect /api to the swagger docs
   :<|> Redirect 302 Text -- Redirect / to the swagger docs
 
-myServer :: ServerT MyApi (Sem (Error ServerError ': r))
-myServer = pure Paths.version
+myServer :: Member (Embed IO) r => ServerT MyApi (Sem (Error ServerError ': r))
+myServer = do
+  embed $ putStrLn $ "Returning version " <> showVersion Paths.version
+  pure Paths.version
 
 mySwagger :: Swagger
 mySwagger = toSwagger (Proxy @MyApi)

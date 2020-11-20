@@ -6,7 +6,7 @@
 module Main (main) where
 
 import Control.Lens.Operators
-import Data.Version (Version)
+import Data.Version (Version, showVersion)
 import Paths_servant_polysemy as Paths
 import Polysemy
 import Polysemy.Error
@@ -15,8 +15,10 @@ import Servant.Polysemy.Server
 
 type MyApi = "api" :> "v1" :> "version" :> Get '[JSON] Version
 
-myServer :: ServerT MyApi (Sem (Error ServerError ': r))
-myServer = pure Paths.version
+myServer :: Member (Embed IO) r => ServerT MyApi (Sem (Error ServerError ': r))
+myServer = do
+  embed $ putStrLn $ "Returning version " <> showVersion Paths.version
+  pure Paths.version
 
 main :: IO ()
 main =
