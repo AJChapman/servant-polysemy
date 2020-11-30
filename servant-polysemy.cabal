@@ -88,11 +88,11 @@ executable example-server-with-swagger
                      -fplugin=Polysemy.Plugin
   build-depends:       servant-polysemy
                      , lens
-                     , polysemy-plugin ^>= 0.2.4.0
-                     , servant-swagger ^>= 1.1
+                     , polysemy-plugin    ^>= 0.2.4.0
+                     , servant-swagger    ^>= 1.1
                      , servant-swagger-ui ^>= 0.3
-                     , swagger2 >= 2.4 && < 2.6
-                     , text            ^>= 1.2.3.1
+                     , swagger2            >= 2.4 && < 2.7
+                     , text               ^>= 1.2.3.1
 
 executable example-client
   import:            deps
