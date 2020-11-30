@@ -10,7 +10,7 @@ license-file:        LICENSE
 author:              Alex Chapman
 maintainer:          alex@farfromthere.net
 copyright:           2020 Alex Chapman
--- category:
+category:            Servant, Web
 build-type:          Simple
 extra-source-files:  CHANGELOG.md
                      README.md
