@@ -72,10 +72,8 @@ executable example-server
   ghc-options:       -threaded
                      -rtsopts
                      -with-rtsopts=-N
-                     -fplugin=Polysemy.Plugin
   build-depends:       servant-polysemy
                      , lens
-                     , polysemy-plugin ^>= 0.2.4.0
 
 executable example-server-with-swagger
   import:            deps
@@ -85,10 +83,8 @@ executable example-server-with-swagger
   ghc-options:       -threaded
                      -rtsopts
                      -with-rtsopts=-N
-                     -fplugin=Polysemy.Plugin
   build-depends:       servant-polysemy
                      , lens
-                     , polysemy-plugin    ^>= 0.2.4.0
                      , servant-swagger    ^>= 1.1
                      , servant-swagger-ui ^>= 0.3
                      , swagger2            >= 2.4 && < 2.7
@@ -102,9 +98,7 @@ executable example-client
   ghc-options:       -threaded
                      -rtsopts
                      -with-rtsopts=-N
-                     -fplugin=Polysemy.Plugin
   build-depends:       servant-polysemy
-                     , polysemy-plugin ^>= 0.2.4.0
 
 source-repository head
   type:     git
