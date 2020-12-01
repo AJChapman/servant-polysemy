@@ -35,7 +35,7 @@ module Servant.Polysemy.Client
 
   -- ** Streaming
   , ServantClientStreaming
-  , runServantClientStreaming
+  , runClientStreaming
 
   -- * Interpreters
   -- ** Non-Streaming
