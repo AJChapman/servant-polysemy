@@ -9,15 +9,36 @@
 {-# LANGUAGE TypeOperators #-}
 {-|
 Module      : Servant.Polysemy.Server
+Copyright   : (c) 2020 Alex Chapman
+License     : BSD3
+Maintainer  : alex@farfromthere.net
+Stability   : experimental
+Portability : GHC
 Description : Utilities for running a Servant server in a polysemy stack using Warp.
+
+A simple usage scenario is that you create your API,
+then implement a server for it in a 'ServerT api (Sem (Error ServerError ': r))' monad (where 'api' is your API type),
+then run it with 'runWarpServer'.
+See <example/Server.hs> for a trivial example of this.
+
+If you need to take your Servant-Polysemy server and run it in an ordinary Servant server then you can use 'hoistServerIntoSem'.
+This can be used to e.g. add Swagger docs to your server, as in <example/ServerWithSwagger.hs>.
 -}
 module Servant.Polysemy.Server
-  ( liftHandler
-  , hoistServerIntoSem
-  , semHandler
+  (
+  -- * Use ordinary Servant code in a Polysemy 'Sem'
+    hoistServerIntoSem
+  , liftHandler
+
+  -- * Use Servant-Polysemy code in an ordinary Servant/WAI system
   , serveSem
+  , semHandler
+
+  -- * Use Warp to serve a Servant-Polysemy API in a 'Sem' stack.
   , runWarpServer
   , runWarpServerSettings
+
+  -- * Redirect paths in a Servant-Polysemy API
   , Redirect
   , redirect
   ) where

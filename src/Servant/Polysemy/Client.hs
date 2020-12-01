@@ -12,19 +12,40 @@
 {-# LANGUAGE TypeOperators #-}
 {-|
 Module      : Servant.Polysemy.Client
+Copyright   : (c) 2020 Alex Chapman
+License     : BSD3
+Maintainer  : alex@farfromthere.net
+Stability   : experimental
+Portability : GHC
 Description : A Polysemy effect for running Servant commands (ClientM).
-|-}
+
+This module allows you to act as a client of a Servant API, within a Polysemy 'Sem'.
+Use the servant-client package to generate your clients, which return in the 'ClientM' monad.
+You can then use 'runClient' (or 'runClientStreaming') to run your client in 'Sem', and 'runServantClient' (or 'runServantClientStreaming') to interpret the effect.
+-}
 module Servant.Polysemy.Client
-  ( ServantClient
+  (
+  -- * Effects
+  -- ** Non-Streaming
+    ServantClient
   , runClient'
   , runClient
+
+  -- ** Streaming
+  , ServantClientStreaming
+  , runServantClientStreaming
+
+  -- * Interpreters
+  -- ** Non-Streaming
   , runServantClientUrl
   , runServantClient
-  , ClientError
-  , ServantClientStreaming
-  , runClientStreaming
+
+  -- ** Streaming
   , runServantClientStreamingUrl
   , runServantClientStreaming
+
+  -- * Re-exported from Servant
+  , ClientError
   ) where
 
 import Control.DeepSeq (NFData)
