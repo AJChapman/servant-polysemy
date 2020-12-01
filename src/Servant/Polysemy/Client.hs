@@ -23,6 +23,7 @@ module Servant.Polysemy.Client
   , ClientError
   , ServantClientStreaming
   , runClientStreaming
+  , runServantClientStreamingUrl
   , runServantClientStreaming
   ) where
 
@@ -43,16 +44,19 @@ import Servant.Client.Streaming
        , withClientM
        )
 
+-- | The 'ServantClient' effect allows you to run a 'ClientM' as automatically generated for your API by the servant-client package.
 data ServantClient m a where
   RunClient' :: NFData o => ClientM o -> ServantClient m (Either ClientError o)
 
 makeSem ''ServantClient
 
+-- | Run this 'ClientM' in the 'Sem' monad.
 runClient
   :: (Members '[ServantClient, Error ClientError] r, NFData o)
   => ClientM o -> Sem r o
 runClient = runClient' >=> fromEither
 
+-- | Interpret the 'ServantClient' effect by running any calls to 'RunClient'' against the given 'BaseUrl'.
 runServantClientUrl
   :: Member (Embed IO) r
   => BaseUrl -> Sem (ServantClient ': r) a -> Sem r a
@@ -64,6 +68,7 @@ runServantClientUrl server m = do
       embed $ runClientM client env
     ) m
 
+-- | Parse the given string as a URL and then behave as 'runServantClientUrl' does.
 runServantClient
   :: Member (Embed IO) r
   => String -> Sem (ServantClient ': r) a -> Sem r a
@@ -71,19 +76,22 @@ runServantClient server m = do
   server' <- embed $ parseBaseUrl server
   runServantClientUrl server' m
 
+-- | The 'ServantClientStreaming' effect is just like the 'ServantClient' effect,
+-- but allows streaming connections.
 data ServantClientStreaming m a where
   RunClientStreaming :: ClientM o -> ServantClientStreaming m o
 
 makeSem ''ServantClientStreaming
 
-runServantClientStreaming
+-- | Interpret the 'ServantClientStreaming' effect by running any calls to 'RunClientStreaming' against the given URL.
+runServantClientStreamingUrl
   :: Members
     '[ Cont ref
      , Embed IO
      , Error ClientError
      ] r
   => BaseUrl -> Sem (ServantClientStreaming ': r) a -> Sem r a
-runServantClientStreaming server m = do
+runServantClientStreamingUrl server m = do
   manager <- embed $ newManager tlsManagerSettings
   let env = mkClientEnv manager server
   interpret (\case
@@ -94,3 +102,14 @@ runServantClientStreaming server m = do
         ) fromEither
     ) m
 
+-- | Parse the given string as a URL and then behave as 'runServantClientStreamingUrl'.
+runServantClientStreaming
+ :: Members
+    '[ Cont ref
+     , Embed IO
+     , Error ClientError
+     ] r
+  => String -> Sem (ServantClientStreaming ': r) a -> Sem r a
+runServantClientStreaming server m = do
+  server' <- embed $ parseBaseUrl server
+  runServantClientStreamingUrl server' m

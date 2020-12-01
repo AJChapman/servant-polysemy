@@ -24,16 +24,38 @@ module Servant.Polysemy.Server
 
 import Control.Monad.Except (ExceptT(..))
 import Data.Function ((&))
+import Data.Proxy (Proxy(..))
 import GHC.TypeLits (Nat)
 import qualified Network.Wai.Handler.Warp as Warp
 import Polysemy
 import Polysemy.Error
 import Servant
+       ( Application
+       , Handler(..)
+       , HasServer
+       , Header
+       , Headers
+       , JSON
+       , NoContent(..)
+       , Server
+       , ServerError
+       , ServerT
+       , StdMethod(GET)
+       , ToHttpApiData
+       , Verb
+       , addHeader
+       , hoistServer
+       , runHandler
+       , serve
+       )
 
+-- | Make a Servant 'Handler' run in a Polysemy 'Sem' instead.
 liftHandler :: Members '[Error ServerError, Embed IO] r => Handler a -> Sem r a
 liftHandler handler =
   embed (runHandler handler) >>= fromEither
 
+-- | Hoist an ordinary Servant 'Server' into a 'ServerT' whose monad is 'Sem',
+-- so that it can be used with 'serveSem'.
 hoistServerIntoSem
   :: forall api r
    . ( HasServer api '[]
@@ -43,6 +65,7 @@ hoistServerIntoSem
 hoistServerIntoSem =
   hoistServer (Proxy @api) (liftHandler @r)
 
+-- | Turn a 'Sem' that can throw 'ServerError's into a Servant 'Handler'.
 semHandler
   :: (forall x. Sem r x -> IO x)
   -> Sem (Error ServerError ': r) a
@@ -50,6 +73,7 @@ semHandler
 semHandler lowerToIO =
   Handler . ExceptT . lowerToIO . runError
 
+-- | Turn a 'ServerT' that contains a 'Sem' (as returned by 'hoistServerIntoSem') into a WAI 'Application'.
 serveSem
   :: forall api r
    . HasServer api '[]
@@ -67,7 +91,8 @@ runWarpServer
      )
   => Warp.Port -- ^ The port to listen on, e.g. '8080'
   -> Bool -- ^ Whether to show exceptions in the http response (good for debugging but potentially a security risk)
-  -> ServerT api (Sem (Error ServerError ': r)) -> Sem r ()
+  -> ServerT api (Sem (Error ServerError ': r)) -- ^ The server to run. You can create one of these with 'hoistServerIntoSem'.
+  -> Sem r ()
 runWarpServer port showExceptionResponse server =
   let warpSettings = Warp.defaultSettings
         & Warp.setPort port
@@ -83,7 +108,9 @@ runWarpServerSettings
    . ( HasServer api '[]
      , Member (Embed IO) r
      )
-  => Warp.Settings -> ServerT api (Sem (Error ServerError ': r)) -> Sem r ()
+  => Warp.Settings
+  -> ServerT api (Sem (Error ServerError ': r))
+  -> Sem r ()
 runWarpServerSettings settings server = withLowerToIO $ \lowerToIO finished -> do
   Warp.runSettings settings (serveSem @api lowerToIO server)
   finished
