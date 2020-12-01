@@ -14,6 +14,9 @@ category:            Servant, Web
 build-type:          Simple
 extra-source-files:  CHANGELOG.md
                      README.md
+extra-doc-files:     example/Server.hs
+                     example/ServerWithSwagger.hs
+                     example/Client.hs
 tested-with:           GHC == 8.8.4
                      , GHC == 8.10.1
                      --  GHC == 8.4.4 -- Not working due to missing extension BlockArguments
