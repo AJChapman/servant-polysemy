@@ -6,8 +6,8 @@
 
 Check out these examples for how to use it:
 
-- [Server](example/Server.hs)
-- [Server with Swagger docs](example/ServerWithSwagger.hs)
-- [Client](example/Client.hs)
+- [Server](https://github.com/AJChapman/servant-polysemy/blob/master/example/Server.hs)
+- [Server with Swagger docs](https://github.com/AJChapman/servant-polysemy/blob/master/example/ServerWithSwagger.hs)
+- [Client](https://github.com/AJChapman/servant-polysemy/blob/master/example/Client.hs)
 
 The client will connect to either version of the server and interact with its endpoint, which simply serves up the package version.

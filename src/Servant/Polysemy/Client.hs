@@ -22,6 +22,8 @@ Description : A Polysemy effect for running Servant commands (ClientM).
 This module allows you to act as a client of a Servant API, within a Polysemy 'Sem'.
 Use the servant-client package to generate your clients, which return in the 'ClientM' monad.
 You can then use 'runClient' (or 'runClientStreaming') to run your client in 'Sem', and 'runServantClient' (or 'runServantClientStreaming') to interpret the effect.
+
+See <example/Client.hs> for a simple example that can interact with the example servers in the same directory.
 -}
 module Servant.Polysemy.Client
   (
@@ -105,6 +107,7 @@ data ServantClientStreaming m a where
 makeSem ''ServantClientStreaming
 
 -- | Interpret the 'ServantClientStreaming' effect by running any calls to 'RunClientStreaming' against the given URL.
+-- Note that this adds a 'Cont' effect, which you can interpret using 'runContM', probably just before your call to 'runM'.
 runServantClientStreamingUrl
   :: Members
     '[ Cont ref
