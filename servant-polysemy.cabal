@@ -28,7 +28,7 @@ common deps
                      , http-client     ^>= 0.6.4.1
                      , http-client-tls ^>= 0.3.5.3
                      , mtl             ^>= 2.2.2
-                     , polysemy        ^>= 1.3.0.0
+                     , polysemy         >= 1.3.0.0 && < 1.6
                      , polysemy-plugin ^>= 0.2.4.0
                      , polysemy-zoo    ^>= 0.7.0.1
                      , servant-server   >= 0.16 && < 0.19
