@@ -7,6 +7,7 @@
 Check out these examples for how to use it:
 
 - [Server](https://github.com/AJChapman/servant-polysemy/blob/master/example/Server.hs)
+- [Server using Servant.API.Generic](https://github.com/AJChapman/servant-polysemy/blob/master/example/ServerGeneric.hs)
 - [Server with Swagger docs](https://github.com/AJChapman/servant-polysemy/blob/master/example/ServerWithSwagger.hs)
 - [Client](https://github.com/AJChapman/servant-polysemy/blob/master/example/Client.hs)
 
