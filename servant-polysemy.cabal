@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                servant-polysemy
-version:             0.1.1
+version:             0.1.2
 synopsis:            Utilities for using servant in a polysemy stack 
 description:         It's possible to use servant and polysemy together without this library, but it's not easy. This library makes it easy.
 homepage:         https://github.com/AJChapman/servant-polysemy#readme
