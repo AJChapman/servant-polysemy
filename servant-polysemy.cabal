@@ -15,6 +15,7 @@ build-type:          Simple
 extra-source-files:  CHANGELOG.md
                      README.md
 extra-doc-files:     example/Server.hs
+                     example/ServerGeneric.hs
                      example/ServerWithSwagger.hs
                      example/Client.hs
 tested-with:           GHC == 8.8.4
@@ -77,6 +78,18 @@ executable example-server
                      -with-rtsopts=-N
   build-depends:       servant-polysemy
                      , lens
+
+executable example-server-generic
+  import:            deps
+  main-is:             ServerGeneric.hs
+  hs-source-dirs:      example
+  default-language:    Haskell2010
+  ghc-options:       -threaded
+                     -rtsopts
+                     -with-rtsopts=-N
+  build-depends:       servant-polysemy
+                     , lens
+                     , servant
 
 executable example-server-with-swagger
   import:            deps
