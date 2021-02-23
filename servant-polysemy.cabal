@@ -82,6 +82,8 @@ executable example-server
 executable example-server-generic
   import:            deps
   main-is:             ServerGeneric.hs
+  autogen-modules:     Paths_servant_polysemy
+  other-modules:       Paths_servant_polysemy
   hs-source-dirs:      example
   default-language:    Haskell2010
   ghc-options:       -threaded
