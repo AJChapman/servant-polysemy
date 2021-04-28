@@ -1,5 +1,9 @@
 # Revision history for servant-polysemy
 
+## 0.1.3 -- 2021-04-28
+
+* Bump constraint on polysemy-plugin to allow version 0.3.0.0.
+
 ## 0.1.2 -- 2021-02-23
 
 * Remove Paths_servant_polysemy from exported modules.

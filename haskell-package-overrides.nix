@@ -10,7 +10,6 @@ haskellPackages.override {
     # Use a local copy of another package:
     #   pandoc-wrapper = super.callPackage ../pandoc-wrapper/pkg.nix { };
 
-    polysemy-zoo = haskellLib.unmarkBroken super.polysemy-zoo;
-    compact = haskellLib.unmarkBroken super.compact;
+    polysemy-zoo = haskellLib.unmarkBroken (haskellLib.doJailbreak super.polysemy-zoo);
   };
 }
