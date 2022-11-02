@@ -3,7 +3,7 @@ name:                servant-polysemy
 version:             0.1.3
 synopsis:            Utilities for using servant in a polysemy stack 
 description:         It's possible to use servant and polysemy together without this library, but it's not easy. This library makes it easy.
-homepage:         https://github.com/AJChapman/servant-polysemy#readme
+homepage:            https://github.com/AJChapman/servant-polysemy#readme
 bug-reports:         https://github.com/AJChapman/servant-polysemy/issues
 license:             BSD-3-Clause
 license-file:        LICENSE
@@ -20,21 +20,21 @@ extra-doc-files:     example/Server.hs
                      example/Client.hs
 tested-with:           GHC == 8.8.4
                      , GHC == 8.10.1
-                     --  GHC == 8.4.4 -- Not working due to missing extension BlockArguments
-                     --, GHC == 8.6.5 -- Not working due to Polysemy.Plugin not found when generating haddocks
+                     , GHC == 9.0.2
+                     , GHC == 9.2.4
 
 common deps
   build-depends:       base             >= 4.11.0.0 && < 5
                      , deepseq          >= 1.4.3.0 && < 1.5
-                     , http-client     ^>= 0.6.4.1
+                     , http-client      >= 0.6.4.1 && < 0.8
                      , http-client-tls ^>= 0.3.5.3
                      , mtl             ^>= 2.2.2
-                     , polysemy         >= 1.3.0.0 && < 1.6
-                     , polysemy-plugin  >= 0.2.4.0 && < 0.4
-                     , polysemy-zoo    ^>= 0.7.0.1
-                     , servant-server   >= 0.16 && < 0.19
-                     , servant-client   >= 0.16 && < 0.19
-                     , wai             ^>= 3.2.1.2
+                     , polysemy         >= 1.3.0.0 && < 1.8
+                     , polysemy-plugin  >= 0.2.4.0 && < 0.5
+                     , polysemy-zoo     >= 0.7.0.1 && < 0.9
+                     , servant-server   >= 0.16 && < 0.20
+                     , servant-client   >= 0.16 && < 0.20
+                     , wai              >= 3.2.1.2 && < 3.4
                      , warp             >= 3.2.22 && < 3.4
 
 -- Warnings list list taken from
@@ -107,7 +107,7 @@ executable example-server-with-swagger
                      , lens
                      , servant-swagger    ^>= 1.1
                      , servant-swagger-ui ^>= 0.3
-                     , swagger2            >= 2.4 && < 2.7
+                     , swagger2            >= 2.4 && < 2.9
                      , text               ^>= 1.2.3.1
 
 executable example-client
