@@ -77,7 +77,6 @@ executable example-server
                      -rtsopts
                      -with-rtsopts=-N
   build-depends:       servant-polysemy
-                     , lens
 
 executable example-server-generic
   import:            deps
@@ -90,7 +89,6 @@ executable example-server-generic
                      -rtsopts
                      -with-rtsopts=-N
   build-depends:       servant-polysemy
-                     , lens
                      , servant
 
 executable example-server-with-swagger

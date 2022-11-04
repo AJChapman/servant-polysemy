@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeOperators #-}
 module Main (main) where
 
-import Control.Lens.Operators
+import Data.Function ((&))
 import Data.Version (Version, showVersion)
 import Paths_servant_polysemy as Paths
 import Polysemy
@@ -29,7 +29,6 @@ myServer = do
 
 -- This runs Warp (a Haskell web server), serving up our API.
 main :: IO ()
-main =
-  runWarpServer @MyApi 8080 True myServer
-    & runM
+main = runWarpServer @MyApi 8080 True myServer
+     & runM
 
