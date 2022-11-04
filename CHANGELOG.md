@@ -1,5 +1,10 @@
 # Revision history for servant-polysemy
 
+## 0.1.4 -- 2022-11-04
+
+* Add support for GHC 9.0.*, 9.2.* (thanks Lana Black),
+* Relax dependency version constraints (also thanks Lana Black).
+
 ## 0.1.3 -- 2021-04-28
 
 * Bump constraint on polysemy-plugin to allow version 0.3.0.0.
