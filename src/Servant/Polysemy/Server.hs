@@ -32,11 +32,16 @@ module Servant.Polysemy.Server
 
   -- * Use Servant-Polysemy code in an ordinary Servant/WAI system
   , serveSem
+  , serveSemWithContext
   , semHandler
 
   -- * Use Warp to serve a Servant-Polysemy API in a 'Sem' stack.
   , runWarpServer
   , runWarpServerSettings
+
+  -- * Context-aware variants of the above
+  , runWarpServerCtx
+  , runWarpServerSettingsCtx
 
   -- * Redirect paths in a Servant-Polysemy API
   , Redirect
@@ -52,6 +57,7 @@ import Polysemy
 import Polysemy.Error
 import Servant
        ( Application
+       , Context
        , Handler(..)
        , HasServer
        , Header
@@ -59,6 +65,7 @@ import Servant
        , JSON
        , NoContent(..)
        , Server
+       , ServerContext
        , ServerError
        , ServerT
        , StdMethod(GET)
@@ -66,8 +73,10 @@ import Servant
        , Verb
        , addHeader
        , hoistServer
+       , hoistServerWithContext
        , runHandler
        , serve
+       , serveWithContext
        )
 
 -- | Make a Servant 'Handler' run in a Polysemy 'Sem' instead.
@@ -101,8 +110,22 @@ serveSem
   => (forall x. Sem r x -> IO x)
   -> ServerT api (Sem (Error ServerError ': r))
   -> Application
-serveSem lowerToIO m = let api = Proxy @api
-  in serve api (hoistServer api (semHandler lowerToIO) m)
+serveSem lowerToIO m = serve api (hoistServer api (semHandler lowerToIO) m)
+  where api = Proxy @api
+
+-- | Turn a 'ServerT' that contains a 'Sem' (as returned by 'hoistServerIntoSem') into a WAI 'Application'.
+serveSemWithContext
+  :: forall api r ctx
+   . (HasServer api ctx, ServerContext ctx)
+  => (forall x. Sem r x -> IO x)
+  -> Context ctx
+  -> ServerT api (Sem (Error ServerError ': r))
+  -> Application
+serveSemWithContext lowerToIO ctx m =
+  serveWithContext api ctx (hoistServerWithContext api ctxp (semHandler lowerToIO) m)
+  where api = Proxy @api
+        ctxp = Proxy @ctx
+
 
 -- | Run the given server on the given port, possibly showing exceptions in the responses.
 runWarpServer
@@ -134,6 +157,42 @@ runWarpServerSettings
   -> Sem r ()
 runWarpServerSettings settings server = withLowerToIO $ \lowerToIO finished -> do
   Warp.runSettings settings (serveSem @api lowerToIO server)
+  finished
+
+-- | Run the given server on the given port, possibly showing exceptions in the responses.
+runWarpServerCtx
+  :: forall api r ctx
+   . ( HasServer api ctx
+     , ServerContext ctx
+     , Member (Embed IO) r
+     )
+  => Warp.Port -- ^ The port to listen on, e.g. '8080'
+  -> Bool -- ^ Whether to show exceptions in the http response (good for debugging but potentially a security risk)
+  -> Context ctx
+  -> ServerT api (Sem (Error ServerError ': r)) -- ^ The server to run. You can create one of these with 'hoistServerIntoSem'.
+  -> Sem r ()
+runWarpServerCtx port showExceptionResponse ctx server =
+  let warpSettings = Warp.defaultSettings
+        & Warp.setPort port
+        & if showExceptionResponse
+            then Warp.setOnExceptionResponse Warp.exceptionResponseForDebug
+            else id
+  in
+    runWarpServerSettingsCtx @api warpSettings ctx server
+
+-- | Run the given server with these Warp settings and Servant context.
+runWarpServerSettingsCtx
+  :: forall api r ctx
+   . ( HasServer api ctx
+     , ServerContext ctx
+     , Member (Embed IO) r
+     )
+  => Warp.Settings
+  -> Context ctx
+  -> ServerT api (Sem (Error ServerError ': r))
+  -> Sem r ()
+runWarpServerSettingsCtx settings ctx server = withLowerToIO $ \lowerToIO finished -> do
+  Warp.runSettings settings (serveSemWithContext @api lowerToIO ctx server)
   finished
 
 -- | A redirect response with the given code, the new location given in the given type, e.g:
