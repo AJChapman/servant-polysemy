@@ -65,6 +65,7 @@ library
   default-language:    Haskell2010
   exposed-modules:     Servant.Polysemy.Client
                        Servant.Polysemy.Server
+                       Servant.Polysemy.Server.Auth
 
 executable example-server
   import:            deps
@@ -93,6 +94,19 @@ executable example-server-generic
                      , lens
                      , servant
 
+executable example-server-generic-auth
+  import:            deps
+  main-is:             AuthServer.hs
+  autogen-modules:     Paths_servant_polysemy
+  other-modules:       Paths_servant_polysemy
+  hs-source-dirs:      example
+  default-language:    Haskell2010
+  ghc-options:       -threaded
+                     -rtsopts
+                     -with-rtsopts=-N
+  build-depends:       servant-polysemy
+                     , servant
+
 executable example-server-with-swagger
   import:            deps
   main-is:             ServerWithSwagger.hs
@@ -119,6 +133,8 @@ executable example-client
                      -rtsopts
                      -with-rtsopts=-N
   build-depends:       servant-polysemy
+
+
 
 source-repository head
   type:     git
