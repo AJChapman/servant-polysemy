@@ -25,9 +25,11 @@ If you need to take your Servant-Polysemy server and run it in an ordinary Serva
 This can be used to e.g. add Swagger docs to your server, as in <example/ServerWithSwagger.hs>.
 -}
 module Servant.Polysemy.Server
-  (
+  ( ServerSettings(..)
+  , defaultServerSettings
+  , Middleware(..)
   -- * Use ordinary Servant code in a Polysemy 'Sem'
-    hoistServerIntoSem
+  , hoistServerIntoSem
   , liftHandler
 
   -- * Use Servant-Polysemy code in an ordinary Servant/WAI system
@@ -43,15 +45,20 @@ module Servant.Polysemy.Server
   , runWarpServerCtx
   , runWarpServerSettingsCtx
 
+  , runWarpServerEx
+
   -- * Redirect paths in a Servant-Polysemy API
   , Redirect
   , redirect
   ) where
 
 import Control.Monad.Except (ExceptT(..))
+import Data.Foldable (fold)
 import Data.Function ((&))
 import Data.Proxy (Proxy(..))
 import GHC.TypeLits (Nat)
+import Network.Wai (Request, Response, ResponseReceived)
+import qualified Network.Wai as Wai
 import qualified Network.Wai.Handler.Warp as Warp
 import Polysemy
 import Polysemy.Error
@@ -78,6 +85,17 @@ import Servant
        , serve
        , serveWithContext
        )
+import Servant.Server (Context(..))
+
+-- Types for this module
+data ServerSettings ctx r = ServerSettings { warpSettings :: Warp.Settings
+                                           , waiMiddleware :: [Wai.Middleware]
+                                           , middleware :: [Middleware r]
+                                           , context :: Context ctx
+                                           }
+
+defaultServerSettings :: ServerSettings '[] r
+defaultServerSettings = ServerSettings Warp.defaultSettings [] [] EmptyContext
 
 -- | Make a Servant 'Handler' run in a Polysemy 'Sem' instead.
 liftHandler :: Members '[Error ServerError, Embed IO] r => Handler a -> Sem r a
@@ -126,6 +144,28 @@ serveSemWithContext lowerToIO ctx m =
   where api = Proxy @api
         ctxp = Proxy @ctx
 
+-- | Lifted version of WAI 'Application'
+type App r = Request -> (Response -> Sem r ResponseReceived) -> Sem r ResponseReceived
+
+-- | Lifted version of WAI Middleware
+--   Note that this is a newtype for the sole reason of having Semigroup and Monoid instances.
+newtype Middleware r = Middleware { runMiddleware :: App r -> App r}
+
+instance Semigroup (Middleware r) where
+  Middleware f <> Middleware f' = Middleware (f . f')
+
+instance Monoid (Middleware r) where
+  mempty = Middleware id
+
+liftApp :: Member (Embed IO) r =>(forall a. Sem r a -> IO a) -> Application -> App r
+liftApp lowerToIO app request respond = embed (app request (lowerToIO . respond))
+
+appToIO :: Member (Embed IO) r => (forall a. Sem r a -> IO a) -> App r -> Application
+appToIO lowerToIO app request respond = lowerToIO (app request (embed . respond))
+
+-- | Convert WAI Middleware type to our lifted version.
+unwrapMiddleware :: Member (Embed IO) r => (forall a. Sem r a -> IO a) -> Middleware r -> Application -> Application
+unwrapMiddleware lowerToIO (Middleware mw) app = appToIO lowerToIO (mw (liftApp lowerToIO app))
 
 -- | Run the given server on the given port, possibly showing exceptions in the responses.
 runWarpServer
@@ -191,9 +231,28 @@ runWarpServerSettingsCtx
   -> Context ctx
   -> ServerT api (Sem (Error ServerError ': r))
   -> Sem r ()
-runWarpServerSettingsCtx settings ctx server = withLowerToIO $ \lowerToIO finished -> do
-  Warp.runSettings settings (serveSemWithContext @api lowerToIO ctx server)
-  finished
+runWarpServerSettingsCtx settings ctx server =
+  withLowerToIO $ \lowerToIO finished -> do
+    Warp.runSettings settings (serveSemWithContext @api lowerToIO ctx server)
+    finished
+
+runWarpServerEx :: forall api r ctx
+                 . ( HasServer api ctx
+                   , ServerContext ctx
+                   , Member (Embed IO) r
+                   )
+                => ServerSettings ctx r
+                -> ServerT api (Sem (Error ServerError ': r))
+                -> Sem r ()
+runWarpServerEx s srv =
+  withLowerToIO $ \lowerToIO finish ->
+    let mw = unwrapMiddleware lowerToIO (fold (middleware s)) . foldMiddleware (waiMiddleware s)
+    in  Warp.runSettings (warpSettings s) (mw $ server lowerToIO) >> finish
+  where server :: (forall x. Sem r x -> IO x) -> Application
+        server lowerToIO = serveSemWithContext @api lowerToIO (context s) srv
+
+foldMiddleware :: [Application -> Application] -> Application -> Application
+foldMiddleware = foldr (.) id
 
 -- | A redirect response with the given code, the new location given in the given type, e.g:
 -- > Redirect 302 Text

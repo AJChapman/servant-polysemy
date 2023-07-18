@@ -80,6 +80,19 @@ executable example-server
   build-depends:       servant-polysemy
                      , lens
 
+executable example-server-middleware
+  import:            deps
+  main-is:             ServerMiddleware.hs
+  autogen-modules:     Paths_servant_polysemy
+  other-modules:       Paths_servant_polysemy
+  hs-source-dirs:      example
+  default-language:    Haskell2010
+  ghc-options:       -threaded
+                     -rtsopts
+                     -with-rtsopts=-N
+  build-depends:       servant-polysemy
+
+
 executable example-server-generic
   import:            deps
   main-is:             ServerGeneric.hs
