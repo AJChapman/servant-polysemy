@@ -46,6 +46,7 @@ module Servant.Polysemy.Server
   , runWarpServerSettingsCtx
 
   , runWarpServerEx
+  , withHandler
 
   -- * Redirect paths in a Servant-Polysemy API
   , Redirect
@@ -253,6 +254,20 @@ runWarpServerEx s srv =
 
 foldMiddleware :: [Application -> Application] -> Application -> Application
 foldMiddleware = foldr (.) id
+
+withHandler :: forall handler req usr r a
+             . Member (Embed IO) r
+            => ((req -> Handler usr) -> handler req usr)
+            -> (req -> Sem (Error ServerError ': r) usr)
+            -> (handler req usr -> Sem r a)
+            -> Sem r a
+withHandler mkHandler f g = withLowerToIO $ \lowerToIO finish ->
+  let h = mkHandlerSem lowerToIO f
+  in  lowerToIO (g h) <*  finish
+  where mkHandlerSem :: (forall z. Sem r z -> IO z)
+                     -> (req -> Sem (Error ServerError ': r) usr)
+                     -> handler req usr
+        mkHandlerSem lowerToIO hdl = mkHandler (semHandler lowerToIO . hdl)
 
 -- | A redirect response with the given code, the new location given in the given type, e.g:
 -- > Redirect 302 Text
