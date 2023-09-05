@@ -135,7 +135,7 @@ executable example-server-with-swagger
                      , servant-swagger    ^>= 1.1
                      , servant-swagger-ui ^>= 0.3
                      , swagger2            >= 2.4 && < 2.9
-                     , text               ^>= 1.2.3.1
+                     , text                >= 1.2.3.1 && < 3.0
 
 executable example-client
   import:            deps
